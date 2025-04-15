@@ -6,14 +6,17 @@
 #    By: apardo-m <apardo-m@student.42barcel>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/06/04 17:18:38 by apardo-m          #+#    #+#              #
-#    Updated: 2023/10/08 18:04:08 by apardo-m         ###   ########.fr        #
+#    Updated: 2024/07/22 16:27:10 by apardo-m         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = libft.a
 HEADERS = libft.h ft_printf.h
-FLAGS = -Wall -Wextra -Werror
+
+FLAGS = -Wall -Wextra -Werror #-g3
+DPFLAGS = -MMD -MP
 AR_FLAGS = -rcs
+
 SRCS_LIBFT = ft_atoi.c \
 	ft_bzero.c \
 	ft_calloc.c \
@@ -54,10 +57,13 @@ SRCS_LIBFT = ft_atoi.c \
 	ft_putunsignbr.c \
 	ft_puthex.c \
 	ft_mystrtod.c
+
 SRCS_PRINTF = ft_printf.c \
 	ft_printf_func_chars.c \
 	ft_printf_func_hex.c \
 	ft_printf_func_nbrs.c
+
+SRCS_GET_NL = get_next_line.c
 
 SRCS_BONUS = ft_lstnew_bonus.c \
 	ft_lstadd_front_bonus.c \
@@ -69,37 +75,36 @@ SRCS_BONUS = ft_lstnew_bonus.c \
 	ft_lstiter_bonus.c \
 	ft_lstmap_bonus.c
 
-SRCS = $(SRCS_LIBFT) $(SRCS_PRINTF) 
-OBJS = $(SRCS:%.c=%.o)
-OBJS_BONUS = $(SRCS_BONUS:%.c=%.o)
+DIR_OBJ = .obj/
 
+SRCS = $(SRCS_LIBFT) $(SRCS_PRINTF) $(SRCS_GET_NL) $(SRCS_BONUS) 
+OBJS = $(SRCS:%.c=$(DIR_OBJ)%.o)
+DEP  = $(OBJS:%.o=%.d)
 
-all: $(NAME)
+all: $(DIR_OBJ) $(NAME)
+
+$(DIR_OBJ):
+	mkdir -p $@
 
 $(NAME): $(OBJS) 	
 	@echo "--> Object files generated!\n"
 	ar $(AR_FLAGS) $@ $? 
 	@echo "--> Library Completed!"
 
-bonus: .bonus 
-	
-.bonus: $(OBJS_BONUS)
-	@echo "--> BONUS Object files generated!\n"
-	ar $(AR_FLAGS) $(NAME) $?
-	@echo "-->BONUS  Library Completed!"
-	@touch .bonus
-
-%.o: %.c Makefile $(HEADERS)
-	cc $(FLAGS) -c $< -o $@
+#$(DIR_OBJ)%.o: %.c Makefile $(HEADERS)
+$(DIR_OBJ)%.o: %.c Makefile 
+	cc $(FLAGS) $(DPFLAGS) -c $< -o $@
 	
 clean:
-	@echo "--> Remove *.o files."
-	rm -rf $(OBJS) $(OBJS_BONUS) .bonus
+	@echo "--> Remove Object files"
+	rm -rf $(DIR_OBJ)
 
 fclean: clean
 	@echo "--> Remove $(NAME) file."
 	rm -rf $(NAME)	
 	
 re: fclean all
+
+-include $(DEP)
 
 .PHONY: all clean fclean re bonus
